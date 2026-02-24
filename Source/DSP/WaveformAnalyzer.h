@@ -22,6 +22,9 @@ namespace dsp
 class WaveformAnalyzer
 {
 public:
+    static constexpr int kFFTOrder = 12; // 2^12 = 4096
+    static constexpr int kFFTSize = 1 << kFFTOrder;
+
     WaveformAnalyzer()
     {
         formatManager.registerBasicFormats();
@@ -74,9 +77,6 @@ public:
     const std::array<float, kFFTSize / 2>& getFFTMagnitudes() const { return fftMagnitudes; }
 
 private:
-    static constexpr int kFFTOrder = 12; // 2^12 = 4096
-    static constexpr int kFFTSize = 1 << kFFTOrder;
-
     juce::AudioFormatManager formatManager;
     juce::dsp::FFT fft{ kFFTOrder };
 

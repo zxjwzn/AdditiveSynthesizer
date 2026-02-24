@@ -96,6 +96,31 @@ public:
         return nullptr;
     }
 
+    /**
+     * Compute a preview HarmonicData based on current params at a reference
+     * frequency (A4 = 440 Hz). Used for spectrum display when no note is active.
+     */
+    HarmonicData computePreviewHarmonics() const
+    {
+        constexpr float refFreq = 440.0f;
+        auto data = HarmonicSeries::compute(
+            voiceParams.oscRatio, voiceParams.sawPhase, voiceParams.sqrPhase,
+            refFreq, currentSampleRate);
+
+        SpectralFilter::apply(
+            data, voiceParams.filterCutoff, voiceParams.filterBoost,
+            voiceParams.filterPhase, voiceParams.filterStretch,
+            refFreq, currentSampleRate);
+
+        if (voiceParams.waveFilterEnabled && voiceParams.waveFilterMix > 0.0f)
+        {
+            SpectralFilter::applyWaveformFilter(
+                data, voiceParams.waveFilterSpectrum, voiceParams.waveFilterMix);
+        }
+
+        return data;
+    }
+
 private:
     juce::Synthesiser synth;
     AdditiveVoiceParams voiceParams;

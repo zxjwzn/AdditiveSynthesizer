@@ -29,6 +29,8 @@ class UnisonProcessor
 public:
     static constexpr int kMaxUnisonVoices = 8;
 
+    UnisonProcessor() = default;
+
     void prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
     {
         currentSampleRate = sampleRate;

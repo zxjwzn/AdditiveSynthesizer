@@ -246,6 +246,9 @@ void AdditiveSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& b
     // Clear buffer (synth output only, no input passthrough)
     buffer.clear();
 
+    // Merge on-screen keyboard MIDI events into the incoming buffer
+    keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
+
     // Update parameters from APVTS
     updateSynthParameters();
 

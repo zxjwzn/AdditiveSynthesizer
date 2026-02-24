@@ -67,10 +67,10 @@ public:
     }
 
     void startNote(int midiNoteNumber, float velocity,
-                   juce::SynthesiserSound*, int currentPitchWheelPosition) override
+                   juce::SynthesiserSound*, int /*currentPitchWheelPosition*/) override
     {
         noteVelocity = velocity;
-        noteFrequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+        noteFrequency = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber));
 
         // Reset phase accumulators
         phaseAccumulators.fill(0.0f);

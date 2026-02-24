@@ -35,5 +35,10 @@ private:
     gui::EnvelopeSection        envelopeSection;
     gui::UnisonOutputSection    unisonOutputSection;
 
+    juce::MidiKeyboardComponent midiKeyboard;
+
+    // Preview harmonic data for spectrum display when no note is active
+    dsp::HarmonicData previewHarmonics;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdditiveSynthesizerAudioProcessorEditor)
 };

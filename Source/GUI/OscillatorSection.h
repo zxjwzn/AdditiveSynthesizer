@@ -61,8 +61,8 @@ private:
     SectionPanel panel{ "OSCILLATOR" };
 
     ArcKnob ratioKnob   { "Ratio" };
-    ArcKnob sawPhaseKnob{ "Saw \xCF\x86", "\xC2\xB0" };  // φ, °
-    ArcKnob sqrPhaseKnob{ "Sqr \xCF\x86", "\xC2\xB0" };
+    ArcKnob sawPhaseKnob{ juce::String(juce::CharPointer_UTF8("Saw \xcf\x86")) };
+    ArcKnob sqrPhaseKnob{ juce::String(juce::CharPointer_UTF8("Sqr \xcf\x86")) };
 
     WaveformDisplay waveformDisplay;
 

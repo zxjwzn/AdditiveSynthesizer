@@ -56,8 +56,12 @@ public:
     /** Thread-safe snapshot of the last rendered output for visualization. */
     const juce::AudioBuffer<float>& getVisualizationBuffer() const { return vizBuffer; }
 
+    /** Keyboard state shared between editor and audio thread. */
+    juce::MidiKeyboardState& getKeyboardState() { return keyboardState; }
+
 private:
     juce::AudioProcessorValueTreeState apvts;
+    juce::MidiKeyboardState keyboardState;
     dsp::AdditiveSynthEngine synthEngine;
     dsp::WaveformAnalyzer waveformAnalyzer;
     juce::AudioBuffer<float> vizBuffer;

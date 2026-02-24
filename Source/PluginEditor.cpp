@@ -15,15 +15,28 @@ AdditiveSynthesizerAudioProcessorEditor::AdditiveSynthesizerAudioProcessorEditor
       oscillatorSection(p.getAPVTS()),
       spectralFilterSection(p.getAPVTS(), p.getWaveformAnalyzer()),
       envelopeSection(p.getAPVTS()),
-      unisonOutputSection(p.getAPVTS())
+      unisonOutputSection(p.getAPVTS()),
+      midiKeyboard(p.getKeyboardState(), juce::MidiKeyboardComponent::horizontalKeyboard)
 {
     setLookAndFeel(&customLookAndFeel);
-    setSize(900, 620);
+    setSize(900, 680);
 
     addAndMakeVisible(oscillatorSection);
     addAndMakeVisible(spectralFilterSection);
     addAndMakeVisible(envelopeSection);
     addAndMakeVisible(unisonOutputSection);
+    addAndMakeVisible(midiKeyboard);
+
+    // Style the keyboard to match the dark theme
+    midiKeyboard.setColour(juce::MidiKeyboardComponent::whiteNoteColourId,
+                           juce::Colour(0xFF2A2A40));
+    midiKeyboard.setColour(juce::MidiKeyboardComponent::blackNoteColourId,
+                           juce::Colour(0xFF0E0E1A));
+    midiKeyboard.setColour(juce::MidiKeyboardComponent::keySeparatorLineColourId,
+                           juce::Colour(0xFF3A3A50));
+    midiKeyboard.setColour(juce::MidiKeyboardComponent::keyDownOverlayColourId,
+                           gui::Colors::accent.withAlpha(0.6f));
+    midiKeyboard.setAvailableRange(21, 108); // A0 to C8 — full piano range
 
     // Set up visualization
     oscillatorSection.setVisualizationBuffer(&p.getVisualizationBuffer());
@@ -65,6 +78,14 @@ void AdditiveSynthesizerAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
     bounds.removeFromTop(32); // Header
+
+    // MIDI Keyboard at the bottom — scale key width to fill entire width
+    auto keyboardBounds = bounds.removeFromBottom(50);
+    // 88 keys (A0-C8): 52 white keys. Fit them into the available width.
+    const float whiteKeyWidth = static_cast<float>(keyboardBounds.getWidth()) / 52.0f;
+    midiKeyboard.setKeyWidth(whiteKeyWidth);
+    midiKeyboard.setBounds(keyboardBounds);
+
     bounds = bounds.reduced(6);
 
     // Top half: Oscillator (left) | Spectral Filter (right)
@@ -86,7 +107,18 @@ void AdditiveSynthesizerAudioProcessorEditor::timerCallback()
 {
     // Update spectrum display with current harmonic data
     const auto* harmonicData = audioProcessor.getSynthEngine().getActiveHarmonicData();
-    spectralFilterSection.getSpectrumDisplay().setHarmonicData(harmonicData);
+
+    if (harmonicData != nullptr)
+    {
+        // Active voice — show live data
+        spectralFilterSection.getSpectrumDisplay().setHarmonicData(harmonicData);
+    }
+    else
+    {
+        // No active voice — show a preview based on current parameters
+        previewHarmonics = audioProcessor.getSynthEngine().computePreviewHarmonics();
+        spectralFilterSection.getSpectrumDisplay().setHarmonicData(&previewHarmonics);
+    }
 
     // Update filter visualization params
     auto& apvts = audioProcessor.getAPVTS();

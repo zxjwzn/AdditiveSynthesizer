@@ -1,4 +1,4 @@
-{
+﻿{
     "files.exclude": {
         "**/.vs": true,
         "**/x64": true,

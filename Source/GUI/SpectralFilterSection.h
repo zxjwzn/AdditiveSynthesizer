@@ -54,17 +54,18 @@ public:
 
         auto content = panel.getContentArea();
 
-        // Knobs row
+        // Knobs row — 5 knobs equally spaced
         auto knobRow = content.removeFromTop(80);
-        const int knobWidth = knobRow.getWidth() / 4;
+        const int knobWidth = knobRow.getWidth() / 5;
         cutoffKnob.setBounds(knobRow.removeFromLeft(knobWidth));
         boostKnob.setBounds(knobRow.removeFromLeft(knobWidth));
         phaseKnob.setBounds(knobRow.removeFromLeft(knobWidth));
-        stretchKnob.setBounds(knobRow);
+        stretchKnob.setBounds(knobRow.removeFromLeft(knobWidth));
+        wetDryKnob.setBounds(knobRow);
 
         // Spectrum display
         content.removeFromTop(4);
-        auto specArea = content.removeFromTop(content.getHeight() - 32);
+        auto specArea = content.removeFromTop(content.getHeight() - 28);
         spectrumDisplay.setBounds(specArea);
 
         // Load waveform row
@@ -72,7 +73,6 @@ public:
         auto loadRow = content;
         loadButton.setBounds(loadRow.removeFromLeft(110).reduced(0, 2));
         loadRow.removeFromLeft(4);
-        wetDryKnob.setBounds(loadRow.removeFromRight(60));
         fileLabel.setBounds(loadRow.reduced(4, 2));
     }
 
@@ -85,7 +85,7 @@ private:
 
     ArcKnob cutoffKnob  { "Cutoff" };
     ArcKnob boostKnob   { "Boost", "dB" };
-    ArcKnob phaseKnob   { "Phase", "\xC2\xB0" };
+    ArcKnob phaseKnob   { "Phase", juce::String(juce::CharPointer_UTF8("\xc2\xb0")) };
     ArcKnob stretchKnob { "Stretch" };
     ArcKnob wetDryKnob  { "Wet/Dry" };
 
