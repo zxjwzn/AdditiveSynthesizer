@@ -132,11 +132,10 @@ void AdditiveSynthesizerAudioProcessor::updateSynthParameters()
     vp.envSustain = apvts.getRawParameterValue("envSustain")->load();
     vp.envRelease = apvts.getRawParameterValue("envRelease")->load();
 
-    // Unison
-    auto& unison = synthEngine.getUnisonProcessor();
-    unison.setVoiceCount(static_cast<int>(apvts.getRawParameterValue("unisonCount")->load()));
-    unison.setDetuneAmount(apvts.getRawParameterValue("unisonDetune")->load());
-    unison.setStereoWidth(apvts.getRawParameterValue("stereoWidth")->load());
+    // Unison (rendered per-voice, not post-processed)
+    vp.unisonCount  = static_cast<int>(apvts.getRawParameterValue("unisonCount")->load());
+    vp.unisonDetune = apvts.getRawParameterValue("unisonDetune")->load();
+    vp.stereoWidth  = apvts.getRawParameterValue("stereoWidth")->load();
 
     // Master
     synthEngine.setMasterGain(apvts.getRawParameterValue("masterGain")->load());

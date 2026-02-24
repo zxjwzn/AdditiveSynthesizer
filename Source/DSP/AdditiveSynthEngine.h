@@ -46,23 +46,16 @@ public:
         }
 
         unisonProcessor.prepareToPlay(sampleRate, samplesPerBlock);
-
-        // Mono buffer for synth output (before unison processing)
-        monoBuffer.setSize(1, samplesPerBlock);
     }
 
     void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
     {
         const int numSamples = buffer.getNumSamples();
+        buffer.clear();
 
-        // Render synth to a temporary mono buffer first
-        monoBuffer.setSize(1, numSamples, false, false, true);
-        monoBuffer.clear();
-
-        synth.renderNextBlock(monoBuffer, midiMessages, 0, numSamples);
-
-        // Apply Unison processing (mono → stereo)
-        unisonProcessor.process(monoBuffer, buffer);
+        // Render synth directly to stereo buffer
+        // (unison detuning + stereo spread is handled inside each AdditiveVoice)
+        synth.renderNextBlock(buffer, midiMessages, 0, numSamples);
 
         // Apply master gain
         const float gainLinear = juce::Decibels::decibelsToGain(masterGainDb);
@@ -129,7 +122,6 @@ private:
 
     double currentSampleRate = 44100.0;
     int currentBlockSize = 512;
-    juce::AudioBuffer<float> monoBuffer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdditiveSynthEngine)
 };

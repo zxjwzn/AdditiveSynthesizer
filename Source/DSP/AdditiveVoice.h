@@ -42,6 +42,11 @@ struct AdditiveVoiceParams
     float waveFilterMix     = 0.0f;
     std::array<float, kMaxHarmonics> waveFilterSpectrum{};
 
+    // Unison (rendered per-voice, not post-processed)
+    int   unisonCount   = 1;      // 1..8
+    float unisonDetune  = 10.0f;  // cents
+    float stereoWidth   = 0.5f;   // 0..1
+
     // ADSR
     float envAttack  = 0.01f;
     float envDecay   = 0.1f;
@@ -72,8 +77,9 @@ public:
         noteVelocity = velocity;
         noteFrequency = static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber));
 
-        // Reset phase accumulators
-        phaseAccumulators.fill(0.0f);
+        // Reset phase accumulators for all unison sub-voices
+        for (auto& arr : uniPhaseAccumulators)
+            arr.fill(0.0f);
 
         // Update ADSR parameters and start envelope
         updateADSR();
@@ -111,54 +117,89 @@ public:
         if (!isVoiceActive())
             return;
 
-        // Rebuild harmonics if parameters changed (cheap check)
         rebuildHarmonics();
         updateADSR();
 
         const auto& sineLUT = SineLUT::getInstance();
         const int activeHarmonics = harmonicData.activeCount;
+        const int uniCount = juce::jlimit(1, kMaxUnisonVoices, params.unisonCount);
+        const bool isStereo = outputBuffer.getNumChannels() >= 2;
+
+        // Gain normalization: constant-power across unison voices
+        const float gainPerUni = 1.0f / std::sqrt(static_cast<float>(uniCount));
+
+        // Precompute per-unison frequency multiplier and stereo pan
+        std::array<float, kMaxUnisonVoices> freqMul{};
+        std::array<float, kMaxUnisonVoices> panL{}, panR{};
+
+        for (int u = 0; u < uniCount; ++u)
+        {
+            float detuneOffsetCents = 0.0f;
+            float panPos = 0.5f;
+
+            if (uniCount > 1)
+            {
+                // Spread from -1 to +1
+                const float spread = static_cast<float>(u) / static_cast<float>(uniCount - 1)
+                                     * 2.0f - 1.0f;
+                detuneOffsetCents = params.unisonDetune * spread;
+                panPos = 0.5f + params.stereoWidth * spread * 0.5f;
+                panPos = juce::jlimit(0.0f, 1.0f, panPos);
+            }
+
+            freqMul[u] = std::pow(2.0f, detuneOffsetCents / 1200.0f);
+            panL[u] = std::cos(panPos * juce::MathConstants<float>::halfPi);
+            panR[u] = std::sin(panPos * juce::MathConstants<float>::halfPi);
+        }
+
+        const float invSampleRate = 1.0f / static_cast<float>(currentSampleRate);
 
         for (int sample = startSample; sample < startSample + numSamples; ++sample)
         {
-            float output = 0.0f;
+            float leftOut = 0.0f;
+            float rightOut = 0.0f;
 
-            // Sum all active harmonics
-            for (int n = 0; n < activeHarmonics; ++n)
+            for (int u = 0; u < uniCount; ++u)
             {
-                if (harmonicData.amplitudes[n] <= 0.0f)
-                    continue;
+                float uniOutput = 0.0f;
 
-                output += harmonicData.amplitudes[n]
-                          * sineLUT.lookup(phaseAccumulators[n] + harmonicData.phases[n]);
+                for (int n = 0; n < activeHarmonics; ++n)
+                {
+                    if (harmonicData.amplitudes[n] <= 0.0f)
+                        continue;
 
-                // Advance phase accumulator
-                const float stretchedN = std::pow(static_cast<float>(n + 1), params.filterStretch);
-                const float freq = noteFrequency * stretchedN;
-                phaseAccumulators[n] += SineLUT::kTwoPi * freq
-                                        / static_cast<float>(currentSampleRate);
+                    uniOutput += harmonicData.amplitudes[n]
+                                 * sineLUT.lookup(uniPhaseAccumulators[u][n]
+                                                  + harmonicData.phases[n]);
 
-                // Wrap phase to [0, 2π)
-                if (phaseAccumulators[n] >= SineLUT::kTwoPi)
-                    phaseAccumulators[n] -= SineLUT::kTwoPi;
+                    // Advance phase: detuned frequency per unison voice
+                    const float stretchedN = std::pow(static_cast<float>(n + 1),
+                                                      params.filterStretch);
+                    const float freq = noteFrequency * freqMul[u] * stretchedN;
+                    uniPhaseAccumulators[u][n] += SineLUT::kTwoPi * freq * invSampleRate;
+
+                    if (uniPhaseAccumulators[u][n] >= SineLUT::kTwoPi)
+                        uniPhaseAccumulators[u][n] -= SineLUT::kTwoPi;
+                }
+
+                leftOut  += uniOutput * panL[u] * gainPerUni;
+                rightOut += uniOutput * panR[u] * gainPerUni;
             }
 
             // Apply ADSR envelope and velocity
             const float envelopeValue = adsr.getNextSample();
-            output *= envelopeValue * noteVelocity;
+            leftOut  *= envelopeValue * noteVelocity * 0.25f;
+            rightOut *= envelopeValue * noteVelocity * 0.25f;
 
-            // If envelope has ended, clear the voice
             if (!adsr.isActive())
             {
                 clearCurrentNote();
                 break;
             }
 
-            // Normalize output (prevent excessive amplitude from many harmonics)
-            output *= 0.25f;
-
-            // Add to output buffer (all channels)
-            for (int ch = 0; ch < outputBuffer.getNumChannels(); ++ch)
-                outputBuffer.addSample(ch, sample, output);
+            outputBuffer.addSample(0, sample, leftOut);
+            if (isStereo)
+                outputBuffer.addSample(1, sample, rightOut);
         }
     }
 
@@ -178,7 +219,10 @@ private:
 
     juce::ADSR adsr;
     HarmonicData harmonicData;
-    std::array<float, kMaxHarmonics> phaseAccumulators{};
+
+    // Per-unison-voice phase accumulators: [unisonIdx][harmonicIdx]
+    static constexpr int kMaxUnisonVoices = 8;
+    std::array<std::array<float, kMaxHarmonics>, kMaxUnisonVoices> uniPhaseAccumulators{};
 
     void rebuildHarmonics()
     {
