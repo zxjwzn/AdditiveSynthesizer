@@ -13,7 +13,8 @@ AdditiveSynthesizerAudioProcessorEditor::AdditiveSynthesizerAudioProcessorEditor
     : AudioProcessorEditor(&p),
       audioProcessor(p),
       oscillatorSection(p.getAPVTS()),
-      spectralFilterSection(p.getAPVTS(), p.getWaveformAnalyzer()),
+      spectralFilterSection(p.getAPVTS(),
+          [&p](const juce::File& f) { return p.getWaveformAnalyzer().loadFile(f); }),
       envelopeSection(p.getAPVTS()),
       unisonOutputSection(p.getAPVTS()),
       midiKeyboard(p.getKeyboardState(), juce::MidiKeyboardComponent::horizontalKeyboard)
@@ -111,13 +112,15 @@ void AdditiveSynthesizerAudioProcessorEditor::timerCallback()
     if (harmonicData != nullptr)
     {
         // Active voice — show live data
-        spectralFilterSection.getSpectrumDisplay().setHarmonicData(harmonicData);
+        spectralFilterSection.getSpectrumDisplay().setSpectrumData(
+            { harmonicData->amplitudes.data(), harmonicData->activeCount });
     }
     else
     {
         // No active voice — show a preview based on current parameters
         previewHarmonics = audioProcessor.getSynthEngine().computePreviewHarmonics();
-        spectralFilterSection.getSpectrumDisplay().setHarmonicData(&previewHarmonics);
+        spectralFilterSection.getSpectrumDisplay().setSpectrumData(
+            { previewHarmonics.amplitudes.data(), previewHarmonics.activeCount });
     }
 
     // Update filter visualization params

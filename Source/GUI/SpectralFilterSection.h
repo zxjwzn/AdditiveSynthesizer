@@ -7,37 +7,36 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "SectionPanel.h"
-#include "ArcKnob.h"
+#include "SectionBase.h"
 #include "SpectrumDisplay.h"
-#include "../DSP/WaveformAnalyzer.h"
+#include <functional>
 
 namespace gui
 {
 
-class SpectralFilterSection : public juce::Component
+/**
+ * Callback type for loading a waveform file.
+ * Returns true if the file was loaded successfully.
+ */
+using FileLoadCallback = std::function<bool(const juce::File&)>;
+
+class SpectralFilterSection : public SectionBase
 {
 public:
     SpectralFilterSection(juce::AudioProcessorValueTreeState& apvts,
-                          synth::WaveformAnalyzer& analyzer)
-        : waveformAnalyzer(analyzer)
+                          FileLoadCallback loadCallback = nullptr)
+        : SectionBase("SPECTRAL FILTER", apvts, {
+              { "Cutoff",  "",                                                           "filterCutoff" },
+              { "Boost",   "dB",                                                         "filterBoost" },
+              { "Phase",   juce::String(juce::CharPointer_UTF8("\xc2\xb0")),             "filterPhase" },
+              { "Stretch", "",                                                           "filterStretch" },
+              { "Wet/Dry", "",                                                           "waveFilterMix" }
+          }),
+          onFileLoad(std::move(loadCallback))
     {
-        addAndMakeVisible(panel);
-        addAndMakeVisible(cutoffKnob);
-        addAndMakeVisible(boostKnob);
-        addAndMakeVisible(phaseKnob);
-        addAndMakeVisible(stretchKnob);
         addAndMakeVisible(spectrumDisplay);
         addAndMakeVisible(loadButton);
-        addAndMakeVisible(wetDryKnob);
         addAndMakeVisible(fileLabel);
-
-        // Attach to APVTS
-        cutoffAttach  = std::make_unique<SliderAttachment>(apvts, "filterCutoff",  cutoffKnob.getSlider());
-        boostAttach   = std::make_unique<SliderAttachment>(apvts, "filterBoost",   boostKnob.getSlider());
-        phaseAttach   = std::make_unique<SliderAttachment>(apvts, "filterPhase",   phaseKnob.getSlider());
-        stretchAttach = std::make_unique<SliderAttachment>(apvts, "filterStretch", stretchKnob.getSlider());
-        wetDryAttach  = std::make_unique<SliderAttachment>(apvts, "waveFilterMix", wetDryKnob.getSlider());
 
         loadButton.setButtonText("Load Waveform");
         loadButton.onClick = [this]() { loadWaveformFile(); };
@@ -47,28 +46,14 @@ public:
         fileLabel.setFont(juce::FontOptions(10.0f));
     }
 
-    void resized() override
+    SpectrumDisplay& getSpectrumDisplay() { return spectrumDisplay; }
+
+protected:
+    void resizeContent(juce::Rectangle<int> content) override
     {
-        auto bounds = getLocalBounds();
-        panel.setBounds(bounds);
-
-        auto content = panel.getContentArea();
-
-        // Knobs row — 5 knobs equally spaced
-        auto knobRow = content.removeFromTop(80);
-        const int knobWidth = knobRow.getWidth() / 5;
-        cutoffKnob.setBounds(knobRow.removeFromLeft(knobWidth));
-        boostKnob.setBounds(knobRow.removeFromLeft(knobWidth));
-        phaseKnob.setBounds(knobRow.removeFromLeft(knobWidth));
-        stretchKnob.setBounds(knobRow.removeFromLeft(knobWidth));
-        wetDryKnob.setBounds(knobRow);
-
-        // Spectrum display
-        content.removeFromTop(4);
         auto specArea = content.removeFromTop(content.getHeight() - 28);
         spectrumDisplay.setBounds(specArea);
 
-        // Load waveform row
         content.removeFromTop(4);
         auto loadRow = content;
         loadButton.setBounds(loadRow.removeFromLeft(110).reduced(0, 2));
@@ -76,31 +61,13 @@ public:
         fileLabel.setBounds(loadRow.reduced(4, 2));
     }
 
-    SpectrumDisplay& getSpectrumDisplay() { return spectrumDisplay; }
-
 private:
-    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
-
-    SectionPanel panel{ "SPECTRAL FILTER" };
-
-    ArcKnob cutoffKnob  { "Cutoff" };
-    ArcKnob boostKnob   { "Boost", "dB" };
-    ArcKnob phaseKnob   { "Phase", juce::String(juce::CharPointer_UTF8("\xc2\xb0")) };
-    ArcKnob stretchKnob { "Stretch" };
-    ArcKnob wetDryKnob  { "Wet/Dry" };
-
     SpectrumDisplay spectrumDisplay;
 
     juce::TextButton loadButton;
     juce::Label fileLabel;
 
-    synth::WaveformAnalyzer& waveformAnalyzer;
-
-    std::unique_ptr<SliderAttachment> cutoffAttach;
-    std::unique_ptr<SliderAttachment> boostAttach;
-    std::unique_ptr<SliderAttachment> phaseAttach;
-    std::unique_ptr<SliderAttachment> stretchAttach;
-    std::unique_ptr<SliderAttachment> wetDryAttach;
+    FileLoadCallback onFileLoad;
 
     void loadWaveformFile()
     {
@@ -114,9 +81,9 @@ private:
             [this](const juce::FileChooser& fc)
             {
                 auto file = fc.getResult();
-                if (file.existsAsFile())
+                if (file.existsAsFile() && onFileLoad)
                 {
-                    if (waveformAnalyzer.loadFile(file))
+                    if (onFileLoad(file))
                     {
                         fileLabel.setText(file.getFileName(), juce::dontSendNotification);
                         fileLabel.setColour(juce::Label::textColourId, Colors::waveformGreen);

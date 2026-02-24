@@ -13,6 +13,7 @@
 #include "GUI/SpectralFilterSection.h"
 #include "GUI/EnvelopeSection.h"
 #include "GUI/UnisonOutputSection.h"
+// Note: Section classes now use SectionBase (see GUI/SectionBase.h & GUI/KnobStrip.h)
 
 class AdditiveSynthesizerAudioProcessorEditor : public juce::AudioProcessorEditor,
                                                  public juce::Timer

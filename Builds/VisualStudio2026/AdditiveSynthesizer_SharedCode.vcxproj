@@ -3068,6 +3068,8 @@
     <ClInclude Include="..\..\Source\GUI\CustomLookAndFeel.h"/>
     <ClInclude Include="..\..\Source\GUI\ArcKnob.h"/>
     <ClInclude Include="..\..\Source\GUI\SectionPanel.h"/>
+    <ClInclude Include="..\..\Source\GUI\KnobStrip.h"/>
+    <ClInclude Include="..\..\Source\GUI\SectionBase.h"/>
     <ClInclude Include="..\..\Source\GUI\WaveformDisplay.h"/>
     <ClInclude Include="..\..\Source\GUI\SpectrumDisplay.h"/>
     <ClInclude Include="..\..\Source\GUI\ADSRDisplay.h"/>

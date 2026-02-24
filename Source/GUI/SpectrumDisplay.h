@@ -8,10 +8,16 @@
 
 #include <JuceHeader.h>
 #include "CustomLookAndFeel.h"
-#include "../DSP/HarmonicSeries.h"
 
 namespace gui
 {
+
+/** Lightweight data struct for passing spectrum magnitudes into the display. */
+struct SpectrumData
+{
+    const float* amplitudes = nullptr; ///< Pointer to amplitude array (NOT owned)
+    int          count      = 0;      ///< Number of valid elements in `amplitudes`
+};
 
 /**
  * Displays the harmonic spectrum as a bar chart.
@@ -25,10 +31,10 @@ public:
         startTimerHz(20);
     }
 
-    /** Set the harmonic data pointer (from active voice). */
-    void setHarmonicData(const synth::HarmonicData* data)
+    /** Set the spectrum data to visualize. */
+    void setSpectrumData(const SpectrumData& data)
     {
-        harmonicData = data;
+        specData = data;
     }
 
     /** Set spectral filter parameters for drawing the filter curve overlay. */
@@ -51,7 +57,7 @@ public:
         const float height = bounds.getHeight();
         const int maxBars = 128; // Show up to 128 bars (higher harmonics are tiny)
 
-        if (harmonicData == nullptr || harmonicData->activeCount == 0)
+        if (specData.amplitudes == nullptr || specData.count == 0)
         {
             g.setColour(Colors::textDim.withAlpha(0.4f));
             g.setFont(juce::FontOptions(10.0f));
@@ -59,18 +65,18 @@ public:
             return;
         }
 
-        const int numBars = juce::jmin(maxBars, harmonicData->activeCount);
+        const int numBars = juce::jmin(maxBars, specData.count);
         const float barWidth = width / static_cast<float>(numBars);
 
         // Find max amplitude for normalization
         float maxAmp = 0.001f;
         for (int i = 0; i < numBars; ++i)
-            maxAmp = juce::jmax(maxAmp, harmonicData->amplitudes[i]);
+            maxAmp = juce::jmax(maxAmp, specData.amplitudes[i]);
 
         // Draw bars
         for (int i = 0; i < numBars; ++i)
         {
-            const float amp = harmonicData->amplitudes[i] / maxAmp;
+            const float amp = specData.amplitudes[i] / maxAmp;
             const float barHeight = amp * (height - 4.0f);
             const float x = bounds.getX() + static_cast<float>(i) * barWidth;
             const float y = bounds.getBottom() - barHeight - 2.0f;
@@ -105,7 +111,7 @@ public:
     }
 
 private:
-    const synth::HarmonicData* harmonicData = nullptr;
+    SpectrumData specData;
     float filterCutoff = 128.0f;
     float filterBoost = 0.0f;
     float filterStretch = 1.0f;
