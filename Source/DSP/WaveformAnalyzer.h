@@ -11,7 +11,7 @@
 #include <array>
 #include <cmath>
 
-namespace dsp
+namespace synth
 {
 
 /**
@@ -159,4 +159,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WaveformAnalyzer)
 };
 
-} // namespace dsp
+} // namespace synth

@@ -10,7 +10,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace dsp
+namespace synth
 {
 
 /**
@@ -102,4 +102,4 @@ public:
     }
 };
 
-} // namespace dsp
+} // namespace synth

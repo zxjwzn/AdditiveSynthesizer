@@ -10,7 +10,7 @@
 #include "AdditiveVoice.h"
 #include "UnisonProcessor.h"
 
-namespace dsp
+namespace synth
 {
 
 static constexpr int kMaxPolyphony = 8;
@@ -126,4 +126,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdditiveSynthEngine)
 };
 
-} // namespace dsp
+} // namespace synth

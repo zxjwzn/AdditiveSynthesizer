@@ -11,7 +11,7 @@
 #include "HarmonicSeries.h"
 #include "SpectralFilter.h"
 
-namespace dsp
+namespace synth
 {
 
 /**
@@ -255,4 +255,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AdditiveVoice)
 };
 
-} // namespace dsp
+} // namespace synth

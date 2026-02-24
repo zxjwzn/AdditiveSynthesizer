@@ -47,11 +47,11 @@ public:
     // === Public accessors ===
     juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
-    dsp::AdditiveSynthEngine& getSynthEngine() { return synthEngine; }
-    const dsp::AdditiveSynthEngine& getSynthEngine() const { return synthEngine; }
+    synth::AdditiveSynthEngine& getSynthEngine() { return synthEngine; }
+    const synth::AdditiveSynthEngine& getSynthEngine() const { return synthEngine; }
 
-    dsp::WaveformAnalyzer& getWaveformAnalyzer() { return waveformAnalyzer; }
-    const dsp::WaveformAnalyzer& getWaveformAnalyzer() const { return waveformAnalyzer; }
+    synth::WaveformAnalyzer& getWaveformAnalyzer() { return waveformAnalyzer; }
+    const synth::WaveformAnalyzer& getWaveformAnalyzer() const { return waveformAnalyzer; }
 
     /** Thread-safe snapshot of the last rendered output for visualization. */
     const juce::AudioBuffer<float>& getVisualizationBuffer() const { return vizBuffer; }
@@ -62,8 +62,8 @@ public:
 private:
     juce::AudioProcessorValueTreeState apvts;
     juce::MidiKeyboardState keyboardState;
-    dsp::AdditiveSynthEngine synthEngine;
-    dsp::WaveformAnalyzer waveformAnalyzer;
+    synth::AdditiveSynthEngine synthEngine;
+    synth::WaveformAnalyzer waveformAnalyzer;
     juce::AudioBuffer<float> vizBuffer;
 
     /** Create APVTS parameter layout. */

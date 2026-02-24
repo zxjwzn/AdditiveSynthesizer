@@ -19,7 +19,7 @@ class SpectralFilterSection : public juce::Component
 {
 public:
     SpectralFilterSection(juce::AudioProcessorValueTreeState& apvts,
-                          dsp::WaveformAnalyzer& analyzer)
+                          synth::WaveformAnalyzer& analyzer)
         : waveformAnalyzer(analyzer)
     {
         addAndMakeVisible(panel);
@@ -94,7 +94,7 @@ private:
     juce::TextButton loadButton;
     juce::Label fileLabel;
 
-    dsp::WaveformAnalyzer& waveformAnalyzer;
+    synth::WaveformAnalyzer& waveformAnalyzer;
 
     std::unique_ptr<SliderAttachment> cutoffAttach;
     std::unique_ptr<SliderAttachment> boostAttach;

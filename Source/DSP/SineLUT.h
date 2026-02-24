@@ -9,7 +9,7 @@
 #include <cmath>
 #include <array>
 
-namespace dsp
+namespace synth
 {
 
 /**
@@ -66,4 +66,4 @@ private:
     SineLUT& operator=(const SineLUT&) = delete;
 };
 
-} // namespace dsp
+} // namespace synth

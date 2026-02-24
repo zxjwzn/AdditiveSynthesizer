@@ -26,7 +26,7 @@ public:
     }
 
     /** Set the harmonic data pointer (from active voice). */
-    void setHarmonicData(const dsp::HarmonicData* data)
+    void setHarmonicData(const synth::HarmonicData* data)
     {
         harmonicData = data;
     }
@@ -105,7 +105,7 @@ public:
     }
 
 private:
-    const dsp::HarmonicData* harmonicData = nullptr;
+    const synth::HarmonicData* harmonicData = nullptr;
     float filterCutoff = 128.0f;
     float filterBoost = 0.0f;
     float filterStretch = 1.0f;

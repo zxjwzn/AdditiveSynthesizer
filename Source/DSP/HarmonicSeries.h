@@ -9,7 +9,7 @@
 #include <array>
 #include <cmath>
 
-namespace dsp
+namespace synth
 {
 
 static constexpr int kMaxHarmonics = 256;
@@ -91,4 +91,4 @@ public:
     }
 };
 
-} // namespace dsp
+} // namespace synth
