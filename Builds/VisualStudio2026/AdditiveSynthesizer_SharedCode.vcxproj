@@ -3070,6 +3070,14 @@
     <ClInclude Include="..\..\Source\GUI\SectionPanel.h"/>
     <ClInclude Include="..\..\Source\GUI\KnobStrip.h"/>
     <ClInclude Include="..\..\Source\GUI\SectionBase.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\UIToolkit.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\CustomLookAndFeel.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\ArcKnob.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\SectionPanel.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\KnobStrip.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\SectionBase.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\ToggleSwitch.h"/>
+    <ClInclude Include="..\..\Source\UIToolkit\CheckBox.h"/>
     <ClInclude Include="..\..\Source\GUI\WaveformDisplay.h"/>
     <ClInclude Include="..\..\Source\GUI\SpectrumDisplay.h"/>
     <ClInclude Include="..\..\Source\GUI\ADSRDisplay.h"/>
